@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}{{ meta.singular }} details{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('entity_list',entity=entity) }}">{{ meta.title }}</a> / Details{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">RECORD DETAILS</span><h1>{{ record.get('company_name') if entity == 'companies' else record.get('job_title') if entity == 'jobs' else record.get('contact_name') if entity == 'contacts' else record.get('job_title') }}</h1><p>Review the saved information.</p></div><a class="btn btn-primary" href="{{ url_for('entity_edit',entity=entity,record_id=record[meta.pk]) }}">Edit {{ meta.singular|lower }}</a></div>
+<section class="panel detail-panel"><dl class="detail-grid">
+{% for key, label, kind, required, max_len in meta.fields %}<div><dt>{{ label }}</dt><dd>{% set value = record.get(key) %}{% if kind == 'checkbox' %}{{ 'Yes' if value else 'No' }}{% elif kind == 'company_select' %}{{ record.get('company_name', value) }}{% elif kind == 'job_select' %}{{ record.get('job_title', value) }}{% elif kind == 'skills' %}{{ value if value is not none else '—' }}{% elif kind == 'json' %}<pre class="json-view">{{ value if value is not none else '—' }}</pre>{% elif value is not none and value != '' %}{{ value }}{% else %}—{% endif %}</dd></div>{% endfor %}
+</dl><div class="form-actions"><a class="btn btn-outline" href="{{ url_for('entity_list',entity=entity) }}">← Back to {{ meta.title|lower }}</a><form method="post" action="{{ url_for('entity_delete',entity=entity,record_id=record[meta.pk]) }}" onsubmit="return confirm('Delete this record permanently?');"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="btn btn-danger" type="submit">Delete record</button></form></div></section>
+{% endblock %}

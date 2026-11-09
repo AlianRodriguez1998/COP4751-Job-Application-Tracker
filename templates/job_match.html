@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Job Match{% endblock %}
+{% block breadcrumb %}Job Match{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">SKILL INTELLIGENCE</span><h1>Find your best-fit jobs</h1><p>Discover opportunities that align with what you bring to the table.</p></div></div>
+<section class="panel match-input"><div class="panel-heading"><div><h2>What are your skills?</h2><p>Add your skills separated by commas to compare with saved job requirements.</p></div><span class="match-sparkle">✦</span></div>
+<form method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label for="skills">YOUR SKILLS</label><textarea name="skills" id="skills" rows="3" placeholder="e.g. Python, SQL, Flask, JavaScript, Excel">{{ raw }}</textarea><div class="form-actions"><button class="btn btn-primary" type="submit">✦ Find matching jobs</button></div></form></section>
+{% if entered and skills %}<section class="panel results-panel"><div class="panel-heading"><div><h2>Ranked job matches</h2><p>{{ jobs|length }} saved opportunities ranked by percentage of required skills matched.</p></div></div>
+{% if jobs %}<div class="results">{% for job in jobs %}<div class="match-card"><div><span class="eyebrow">MATCH {{ loop.index }}</span><h3><a href="{{ url_for('entity_detail',entity='jobs',record_id=job.job_id) }}">{{ job.job_title }}</a></h3><p>{{ job.company_name }}{% if job.job_type %} · {{ job.job_type }}{% endif %}</p>
+{% if job.required_count %}<div class="skills-line"><span class="skills-label">Matched</span> {% for s in job.matched_skills %}<span class="skill-chip matched">{{ s }}</span>{% else %}<span class="muted">None</span>{% endfor %}</div><div class="skills-line"><span class="skills-label">Missing</span> {% for s in job.missing_skills %}<span class="skill-chip missing">{{ s }}</span>{% else %}<span class="muted">None</span>{% endfor %}</div>{% else %}<p class="muted">No requirements saved. Add skills when editing this job to enable matching.</p>{% endif %}</div><div class="match-score">{% if job.percentage is not none %}<strong>{{ job.percentage }}%</strong><small>{{ job.matched_count }}/{{ job.required_count }} skills</small>{% else %}<strong>—</strong><small>Not rated</small>{% endif %}</div></div>{% endfor %}</div>
+{% else %}<div class="empty-small">No jobs yet. Add jobs with requirements to compare them here.</div>{% endif %}
+</section>{% endif %}
+{% endblock %}

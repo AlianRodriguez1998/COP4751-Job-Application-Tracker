@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if editing else 'Add' }} {{ meta.singular }}{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('entity_list',entity=entity) }}">{{ meta.title }}</a> / {{ 'Edit' if editing else 'Add' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">{{ 'UPDATE RECORD' if editing else 'NEW RECORD' }}</span><h1>{{ 'Edit' if editing else 'Add' }} {{ meta.singular|lower }}</h1><p>Fields marked with * are required.</p></div></div>
+<section class="panel form-panel"><form method="post" novalidate>
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+{% if errors.get('_general') %}<div class="alert error">{{ errors['_general'] }}</div>{% endif %}
+<div class="form-grid">
+{% for key, label, kind, required, max_len in meta.fields %}
+  <div class="form-field {% if kind in ('textarea','skills','json') %}wide{% endif %}">
+    <label for="{{ key }}">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    {% if kind in ('company_select','job_select') %}
+      <select name="{{ key }}" id="{{ key }}" {% if required %}required{% endif %}><option value="">Choose {{ label|lower }}</option>{% for option in options %}<option value="{{ option.id }}" {% if data.get(key)|string == option.id|string %}selected{% endif %}>{{ option.label }}</option>{% endfor %}</select>
+      {% if not options %}<small class="help">First add {{ 'a company' if kind == 'company_select' else 'a job' }} using the navigation.</small>{% endif %}
+    {% elif kind in ('job_type','status') %}
+      <select name="{{ key }}" id="{{ key }}"><option value="">Not set</option>{% for option in (job_types if kind == 'job_type' else statuses) %}<option value="{{ option }}" {% if data.get(key) == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+    {% elif kind in ('textarea','skills','json') %}
+      <textarea id="{{ key }}" name="{{ key }}" rows="{{ 4 if kind == 'json' else 3 }}" placeholder="{{ 'Python, SQL, Flask' if kind == 'skills' else '{\"round\": 1, \"date\": \"2026-11-10\"}' if kind == 'json' else 'Add any helpful details...' }}">{{ data.get(key, '') }}</textarea>
+      {% if kind == 'skills' %}<small class="help">Stored as a JSON array, e.g. ["Python", "SQL", "Flask"].</small>{% elif kind == 'json' %}<small class="help">Optional. Enter valid JSON, such as {"round": 1, "notes": "Phone screen"}.</small>{% endif %}
+    {% elif kind == 'checkbox' %}
+      <label class="checkbox-row"><input type="checkbox" name="{{ key }}" id="{{ key }}" {% if data.get(key) in (1,True,'on','1') %}checked{% endif %}> Yes, sent</label>
+    {% else %}
+      <input type="{{ 'number' if kind == 'nonnegative_int' else kind if kind in ('date','email','url') else 'text' }}" id="{{ key }}" name="{{ key }}" value="{{ data.get(key, '') }}" {% if max_len %}maxlength="{{ max_len }}"{% endif %} {% if required %}required{% endif %} {% if kind == 'nonnegative_int' %}min="0" step="1"{% endif %}>
+    {% endif %}
+    {% if errors.get(key) %}<small class="field-error">{{ errors[key] }}</small>{% endif %}
+  </div>
+{% endfor %}
+</div>
+<div class="form-actions"><button class="btn btn-primary" type="submit">{{ 'Save changes' if editing else 'Create ' ~ meta.singular|lower }}</button><a class="btn btn-outline" href="{{ url_for('entity_list',entity=entity) }}">Cancel</a></div>
+</form></section>
+{% endblock %}

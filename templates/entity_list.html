@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block breadcrumb %}{{ meta.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">MANAGE RECORDS</span><h1>{{ meta.title }}</h1><p>Keep your {{ meta.title|lower }} up to date in one place.</p></div><a class="btn btn-primary" href="{{ url_for('entity_new',entity=entity) }}">+ Add {{ meta.singular|lower }}</a></div>
+<section class="panel"><div class="panel-heading"><div><h2>All {{ meta.title|lower }}</h2><p>{{ rows|length }} record{{ '' if rows|length == 1 else 's' }} in your workspace</p></div></div>
+{% if rows %}<div class="table-wrap"><table><thead><tr>{% for field in meta.list_fields %}<th>{{ field.replace('_',' ')|upper }}</th>{% endfor %}<th class="action-col">ACTIONS</th></tr></thead><tbody>
+{% for item in rows %}<tr>{% for field in meta.list_fields %}<td>{% if loop.first %}<a class="record-link" href="{{ url_for('entity_detail',entity=entity,record_id=item[meta.pk]) }}">{{ item[field] if item[field] is not none else '—' }}</a>{% elif field == 'status' %}<span class="tag">{{ item[field] or 'Not set' }}</span>{% else %}{{ item[field] if item[field] is not none else '—' }}{% endif %}</td>{% endfor %}
+<td class="actions"><a href="{{ url_for('entity_detail',entity=entity,record_id=item[meta.pk]) }}">View</a><a href="{{ url_for('entity_edit',entity=entity,record_id=item[meta.pk]) }}">Edit</a><form method="post" action="{{ url_for('entity_delete',entity=entity,record_id=item[meta.pk]) }}" onsubmit="return confirm('Delete this {{ meta.singular|lower }}? This cannot be undone.');"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="link-danger" type="submit">Delete</button></form></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty"><div class="empty-symbol">▤</div><h3>No {{ meta.title|lower }} yet</h3><p>Create your first record to get started.</p><a class="btn btn-primary" href="{{ url_for('entity_new',entity=entity) }}">+ Add {{ meta.singular|lower }}</a></div>{% endif %}
+</section>
+{% endblock %}
